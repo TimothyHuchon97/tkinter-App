@@ -57,8 +57,15 @@ class TkApp(tk.Tk):
             vine_location_btn.pack(fill="x", padx=20, pady=8)
 
     def display_wine_marker(self, value):
+        latitude = value[0][0]
+        longitude = value[0][1]
         wine_icon = ImageTk.PhotoImage(ICON_RED_WINE) if value[1] == "Tinto" else ImageTk.PhotoImage(ICON_WHITE_WINE)
-        self.map_widget.set_marker(value[0][0], value[0][1], icon=wine_icon)
+        self.map_widget.set_marker(latitude, longitude, icon=wine_icon)
+        self.zoom_on_location(latitude, longitude, 7)
+
+    def zoom_on_location(self, latitude, longitude, zoom):
+        self.map_widget.set_position(latitude, longitude)
+        self.map_widget.set_zoom(zoom)
 
 
 if __name__ == "__main__":
