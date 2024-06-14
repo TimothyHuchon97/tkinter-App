@@ -16,6 +16,7 @@ class TkApp(tk.Tk):
         self.create_side_bar_btns()
         self.frame_content = self.create_frame_content()
         self.map_widget = self.create_map(self.frame_content)
+        self.zoom_on_location(40.416775, -3.703790, 6)
         self.mainloop()
 
     def configure_style(self, style_name, bg_color):
@@ -39,12 +40,7 @@ class TkApp(tk.Tk):
     def create_map(self, frame_content):
         map_widget = TkinterMapView(frame_content)
         map_widget.pack(fill="both", expand=True, padx=20, pady=20)
-        self.initialize_map(map_widget, "spain", 6)
         return map_widget
-
-    def initialize_map(self, map_widget, address, zoom):
-        map_widget.set_address(address)
-        map_widget.set_zoom(zoom)
 
     def create_btns(self, frame_btns):
         for key, value in DO_VINOS.items():
