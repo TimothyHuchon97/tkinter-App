@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import Toplevel, ttk
 from PIL import Image, ImageTk
 from tkintermapview import TkinterMapView
 from wine_locations_data import DO_VINOS
@@ -53,13 +53,39 @@ class WineAppView:
 
     def create_btns(self, wines_locations_infos):
         for key, value in wines_locations_infos.items():
-            vine_location_btn = ttk.Button(
+            wine_location_btn = ttk.Button(
                 self.frame_btns,
                 text=key,
                 cursor="hand2",
-                command=lambda value=value: self.controller.display_wine_marker(value)
+                command=lambda value=value, key=key: self.controller.display_wine_marker(value, key)
             )
-            vine_location_btn.pack(fill="x", padx=20, pady=8)
+            wine_location_btn.pack(fill="x", padx=20, pady=8)
+
+    def set_up_info_window(self, key, value):
+        info_window = Toplevel()
+        info_window.title(key)
+        info_window.geometry("900x700")
+
+        style = ttk.Style()
+        style.configure("vert.TFrame", background="#202020")
+        style.configure("title.TLabel", font=("Helvetica", 16), foreground="white", background="#202020")
+
+        frame_title = ttk.Frame(info_window, style="vert.TFrame", height=237)
+        frame_image = ttk.Frame(info_window, style="yellow.TFrame", height=237)
+
+        image_location = Image.open(f"images/zones/{key}.png").resize((850, 650))
+        image_tk_location = ImageTk.PhotoImage(image_location)
+
+        frame_title.pack(fill="both", expand=True)
+        frame_image.pack(fill="both", expand=True)
+
+        label_title = ttk.Label(frame_title,style="title.TLabel", text=key)
+        label_image = ttk.Label(frame_image, image=image_tk_location)
+
+        label_title.pack(expand=True, pady=(20, 10))
+        label_image.pack(expand=True, padx=40, pady=(10, 20))
+
+        info_window.mainloop()
 
 
 class WineAppController:
@@ -69,9 +95,6 @@ class WineAppController:
         self.view = WineAppView(root, self)
         self.set_up_buttons()
         self.zoom_on_location(40.416775, -3.703790, 6)
-    
-    def test(self):
-        print("Hello")
 
     def zoom_on_location(self, latitude, longitude, zoom):
         self.view.map_widget.set_position(latitude, longitude)
@@ -81,14 +104,16 @@ class WineAppController:
         wines_locations_infos = self.model.wines_location_info
         self.view.create_btns(wines_locations_infos)
 
-    def display_wine_marker(self, wine_location_info):
+    def display_wine_marker(self, wine_location_info, wine_location_key):
         latitude = wine_location_info[0][0]
         longitude = wine_location_info[0][1]
 
-        wine_icon = ImageTk.PhotoImage(ICON_RED_WINE) if wine_location_info[1] == "Tinto" else ImageTk.PhotoImage(
+        wine_icon = ImageTk.PhotoImage(ICON_RED_WINE) if wine_location_info[1] == "Tinto" \
+            else ImageTk.PhotoImage(
             ICON_WHITE_WINE)
 
-        self.view.map_widget.set_marker(latitude, longitude, icon=wine_icon, command=lambda: self.test())
+        self.view.map_widget.set_marker(latitude, longitude, icon=wine_icon,
+                                        command=lambda value=wine_location_info, key=wine_location_key: self.view.set_up_info_window(key, value))
         self.zoom_on_location(latitude, longitude, 7)
 
     def display_wine_markers_by_category(self):
@@ -100,7 +125,8 @@ class WineAppController:
             if (red_wine and value[1] == "Tinto") or (white_wine and value[1] == "Blanco"):
                 wine_icon = ImageTk.PhotoImage(ICON_RED_WINE) if value[1] == "Tinto" \
                     else ImageTk.PhotoImage(ICON_WHITE_WINE)
-                wine_marker = self.view.map_widget.set_marker(value[0][0], value[0][1], icon=wine_icon)
+                wine_marker = self.view.map_widget.set_marker(value[0][0], value[0][1], icon=wine_icon, 
+                                                              command=lambda value=value, key=key: self.view.set_up_info_window(key, value))
                 wine_marker.set_text(key)
                 self.zoom_on_location(40.416775, -3.703790, 6)
 
